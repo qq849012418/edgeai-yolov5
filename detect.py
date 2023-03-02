@@ -9,6 +9,8 @@ import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
 
+
+
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
@@ -96,10 +98,12 @@ def detect(opt):
             s += '%gx%g ' % img.shape[2:]  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             if len(det):
+                det=det.to('cpu').numpy()
+                print(det)
                 # Rescale boxes from img_size to im0 size
                 scale_coords(img.shape[2:], det[:, :4], im0.shape, kpt_label=False)
                 scale_coords(img.shape[2:], det[:, 6:], im0.shape, kpt_label=kpt_label, step=3)
-
+                det=torch.from_numpy(det)
                 # Print results
                 for c in det[:, 5].unique():
                     n = (det[:, 5] == c).sum()  # detections per class
@@ -122,12 +126,12 @@ def detect(opt):
                             save_one_box(xyxy, im0s, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
 
-                if save_txt_tidl:  # Write to file in tidl dump format
-                    for *xyxy, conf, cls in det_tidl:
-                        xyxy = torch.tensor(xyxy).view(-1).tolist()
-                        line = (conf, cls,  *xyxy) if opt.save_conf else (cls, *xyxy)  # label format
-                        with open(txt_path + '.txt', 'a') as f:
-                            f.write(('%g ' * len(line)).rstrip() % line + '\n')
+                # if save_txt_tidl:  # Write to file in tidl dump format
+                #     for *xyxy, conf, cls in det_tidl:
+                #         xyxy = torch.tensor(xyxy).view(-1).tolist()
+                #         line = (conf, cls,  *xyxy) if opt.save_conf else (cls, *xyxy)  # label format
+                #         with open(txt_path + '.txt', 'a') as f:
+                #             f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
@@ -170,7 +174,7 @@ if __name__ == '__main__':
     parser.add_argument('--img-size', nargs= '+', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
-    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+    parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true', help='display results')
     parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
     parser.add_argument('--save-txt-tidl', action='store_true', help='save results to *.txt in tidl format')
@@ -191,7 +195,7 @@ if __name__ == '__main__':
     parser.add_argument('--kpt-label', action='store_true', help='use keypoint labels')
     opt = parser.parse_args()
     print(opt)
-    check_requirements(exclude=('tensorboard', 'pycocotools', 'thop'))
+    # check_requirements(exclude=('tensorboard', 'pycocotools', 'thop'))
 
     with torch.no_grad():
         if opt.update:  # update all models (to fix SourceChangeWarning)

@@ -375,7 +375,8 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, kpt_label=False
     # Rescale coords (xyxy) from img1_shape to img0_shape
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+        pad = [(img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2]  # wh padding
+
     else:
         gain = ratio_pad[0]
         pad = ratio_pad[1]
@@ -400,6 +401,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, kpt_label=False
 
 def clip_coords(boxes, img_shape, step=2):
     # Clip bounding xyxy bounding boxes to image shape (height, width)
+    boxes=torch.from_numpy(boxes)
     boxes[:, 0::step].clamp_(0, img_shape[1])  # x1
     boxes[:, 1::step].clamp_(0, img_shape[0])  # y1
 
